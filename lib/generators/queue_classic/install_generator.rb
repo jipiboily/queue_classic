@@ -16,7 +16,13 @@ module QC
     end
 
     def create_migration_file
-      migration_template 'add_queue_classic.rb', 'db/migrate/add_queue_classic.rb'
+      if self.class.migration_exists?('db/migrate', 'add_queue_classic').nil?
+        migration_template 'add_queue_classic.rb', 'db/migrate/add_queue_classic.rb'
+      end
+      
+      if self.class.migration_exists?('db/migrate', 'add_queue_classic_heartbeat').nil?
+        migration_template 'add_queue_classic_heartbeat.rb', 'db/migrate/add_queue_classic_heartbeat.rb'
+      end
     end
   end
 end
