@@ -7,18 +7,18 @@ module QC
   # The queue class maps a queue abstraction onto a database table.
   class Queue
 
-    def self.heartbeat(wid, jid)
+    def heartbeat(jid)
       QC.log_yield(:measure => 'queue.heartbeat') do
-        job = Conn.execute(<<-EOS, wid, jid)
+        job = conn_adapter.execute <<-EOS
           UPDATE #{TABLE_NAME}
           SET updated_at = NOW()
-          WHERE locked_by = $1 AND id = $2
+          WHERE locked_by = '#{@worker_id}' AND id = #{jid}
           RETURNING *
         EOS
-        return job[:locked_by] == wid
+        return job['locked_by'] == @worker_id
       end
     end
-    
+
     attr_reader :name, :top_bound
     def initialize(name, top_bound=nil, worker_id=nil)
       @name = name
@@ -75,7 +75,7 @@ module QC
 
     def unlock(id)
       QC.log_yield(:measure => 'queue.unlock') do
-        s = "UPDATE #{TABLE_NAME} set locked_at = null, locked_by = null where id = $1"
+        s = "UPDATE #{TABLE_NAME} set locked_at = null, locked_by = null, updated_at = null where id = $1"
         conn_adapter.execute(s, id)
       end
     end
