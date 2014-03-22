@@ -4,8 +4,8 @@ module QC
     SqlFunctions = File.join(Root, "/sql/ddl.sql")
     CreateTable = File.join(Root, "/sql/create_table.sql")
     DropSqlFunctions = File.join(Root, "/sql/drop_ddl.sql")
-    AddHeartbeat = File.join(Root, "/sql/add_heartbeat.sql")
-    RemoveHeartbeat = File.join(Root, "/sql/remove_heartbeat.sql")
+    UpgradeTo_3_0_0 = File.join(Root, "/sql/update_to_3_0_0.sql")
+    DowngradeTo_3_0_0 = File.join(Root, "/sql/downgrade_from_3_0_0.sql")
 
     def self.create(c = QC::default_conn_adapter.connection)
       conn = QC::ConnAdapter.new(c)
@@ -22,16 +22,19 @@ module QC
       conn.disconnect if c.nil? #Don't close a conn we didn't create.
     end
 
-    def self.update
-      Conn.execute(File.read(AddHeartbeat))
+    def self.update(c = QC::default_conn_adapter.connection)
+      conn = QC::ConnAdapter.new(c)
+      conn.execute(File.read(UpgradeTo_3_0_0))
     end
 
-    def self.add_heartbeat
-      Conn.execute(File.read(AddHeartbeat))
+    def self.update_to_3_0_0(c = QC::default_conn_adapter.connection)
+      conn = QC::ConnAdapter.new(c)
+      conn.execute(File.read(UpgradeTo_3_0_0))
     end
 
-    def self.remove_heartbeat
-      Conn.execute(File.read(RemoveHeartbeat))
+    def self.downgrade_from_3_0_0(c = QC::default_conn_adapter.connection)
+      conn = QC::ConnAdapter.new(c)
+      conn.execute(File.read(DowngradeTo_3_0_0))
     end
   end
 end
