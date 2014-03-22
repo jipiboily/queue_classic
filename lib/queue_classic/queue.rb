@@ -26,9 +26,10 @@ module QC
     end
 
     attr_reader :name, :top_bound
-    def initialize(name, top_bound=nil)
+    def initialize(name, top_bound=nil, worker_id=nil)
       @name = name
       @top_bound = top_bound || QC::TOP_BOUND
+      @worker_id = worker_id
     end
 
     def conn_adapter=(a)
@@ -62,8 +63,8 @@ module QC
 
     def lock
       QC.log_yield(:measure => 'queue.lock') do
-        s = "SELECT * FROM lock_head($1, $2)"
-        if r = conn_adapter.execute(s, name, top_bound)
+        s = "SELECT * FROM lock_head($1, $2, $3)"
+        if r = conn_adapter.execute(s, name, top_bound, @worker_id)
           {}.tap do |job|
             job[:id] = r["id"]
             job[:method] = r["method"]
@@ -80,7 +81,7 @@ module QC
 
     def unlock(id)
       QC.log_yield(:measure => 'queue.unlock') do
-        s = "UPDATE #{TABLE_NAME} set locked_at = null where id = $1"
+        s = "UPDATE #{TABLE_NAME} set locked_at = null, locked_by = null where id = $1"
         conn_adapter.execute(s, id)
       end
     end

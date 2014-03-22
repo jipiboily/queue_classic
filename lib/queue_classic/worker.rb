@@ -17,6 +17,7 @@ module QC
     # q_names:: Names of queues to process. Will process left to right.
     # top_bound:: Offset to the head of the queue. 1 == strict FIFO.
     def initialize(args={})
+      @id = SecureRandom.uuid
       @fork_worker = args[:fork_worker] || QC::FORK_WORKER
       @wait_interval = args[:wait_interval] || QC::WAIT_TIME
       if QC.has_connection?
@@ -123,13 +124,12 @@ module QC
     end
 
     def start_heartbeat(job)
-      wid = SecureRandom.uuid
-      QC.log_yield(:at => "start_heartbeat", :jid => job[:id], :wid => wid) do
+      QC.log_yield(:at => "start_heartbeat", :jid => job[:id], :wid => @id) do
         @heartbeat = Thread.new do
           loop do
             sleep(2)
-            if !QC::Queue.heartbeat(wid, job[:id])
-              QC.log(:at => 'heartbeat_failed', :jid => job[:id], :wid => wid)
+            if !QC::Queue.heartbeat(@id, job[:id])
+              QC.log(:at => 'heartbeat_failed', :jid => job[:id], :wid => @id)
               exit(1)
             end
           end
@@ -175,7 +175,7 @@ module QC
     def setup_queues(adapter, queue, queues, top_bound)
       names = queues.length > 0 ? queues : [queue]
       names.map do |name|
-        QC::Queue.new(name, top_bound).tap do |q|
+        QC::Queue.new(name, top_bound, @id).tap do |q|
           q.conn_adapter = adapter
         end
       end

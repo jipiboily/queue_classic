@@ -3,7 +3,7 @@
 -- have identical columns to queue_classic_jobs.
 -- When QC supports queues with columns other than the default, we will have to change this.
 
-CREATE OR REPLACE FUNCTION lock_head(q_name varchar, top_boundary integer)
+CREATE OR REPLACE FUNCTION lock_head(q_name varchar, top_boundary integer, worker_id varchar)
 RETURNS SETOF queue_classic_jobs AS $$
 DECLARE
   unlocked bigint;
@@ -51,6 +51,8 @@ BEGIN
 
   RETURN QUERY EXECUTE 'UPDATE queue_classic_jobs '
     || ' SET locked_at = (CURRENT_TIMESTAMP)'
+    || ' , locked_by = '
+    || quote_literal(worker_id)
     || ' WHERE id = $1'
     || ' AND locked_at is NULL'
     || ' RETURNING *'
@@ -64,5 +66,13 @@ CREATE OR REPLACE FUNCTION lock_head(tname varchar)
 RETURNS SETOF queue_classic_jobs AS $$
 BEGIN
   RETURN QUERY EXECUTE 'SELECT * FROM lock_head($1,10)' USING tname;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION lock_head(tname varchar, top_boundary integer)
+RETURNS SETOF queue_classic_jobs AS $$
+BEGIN
+  RETURN QUERY EXECUTE 'SELECT * FROM lock_head($1, $2, null)' USING tname;
 END;
 $$ LANGUAGE plpgsql;
