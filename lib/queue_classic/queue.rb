@@ -18,13 +18,7 @@ module QC
         return job[:locked_by] == wid
       end
     end
-
-    def self.delete(id)
-      QC.log_yield(:measure => 'queue.delete') do
-        Conn.execute("DELETE FROM #{TABLE_NAME} where id = $1", id)
-      end
-    end
-
+    
     attr_reader :name, :top_bound
     def initialize(name, top_bound=nil, worker_id=nil)
       @name = name
