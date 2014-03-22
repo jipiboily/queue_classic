@@ -25,11 +25,15 @@ module QC
     def self.update(c = QC::default_conn_adapter.connection)
       conn = QC::ConnAdapter.new(c)
       conn.execute(File.read(UpgradeTo_3_0_0))
+      conn.execute(File.read(DropSqlFunctions))
+      conn.execute(File.read(SqlFunctions))
     end
 
     def self.update_to_3_0_0(c = QC::default_conn_adapter.connection)
       conn = QC::ConnAdapter.new(c)
       conn.execute(File.read(UpgradeTo_3_0_0))
+      conn.execute(File.read(DropSqlFunctions))
+      conn.execute(File.read(SqlFunctions))
     end
 
     def self.downgrade_from_3_0_0(c = QC::default_conn_adapter.connection)
