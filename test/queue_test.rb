@@ -13,6 +13,7 @@ class QueueTest < QCTest
   end
 
   def test_lock
+    QC.default_queue = QC::Queue.new(QC::QUEUE, nil, SecureRandom.uuid)
     QC.enqueue("Klass.method")
     job = QC.lock
     # See helper.rb for more information about the large initial id number.
@@ -22,6 +23,7 @@ class QueueTest < QCTest
   end
 
   def test_lock_when_empty
+    QC.default_queue = QC::Queue.new(QC::QUEUE, nil, SecureRandom.uuid)
     assert_nil(QC.lock)
   end
 
@@ -58,7 +60,7 @@ class QueueTest < QCTest
   end
 
   def test_queue_instance
-    queue = QC::Queue.new("queue_classic_jobs")
+    queue = QC::Queue.new("queue_classic_jobs", nil, SecureRandom.uuid)
     queue.enqueue("Klass.method")
     assert_equal(1, queue.count)
     queue.delete(queue.lock[:id])
