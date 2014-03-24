@@ -129,7 +129,7 @@ module QC
       QC.log_yield(:at => "start_heartbeat", :jid => job[:id], :wid => @id) do
         @heartbeat = Thread.new do
           loop do
-            sleep(2)
+            sleep(10)
             @queues.each do |queue|
               if !queue.heartbeat(job[:id])
                 QC.log(:at => 'heartbeat_failed', :jid => job[:id], :wid => @id)
