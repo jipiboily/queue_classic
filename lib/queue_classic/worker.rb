@@ -33,6 +33,8 @@ module QC
         (args[:top_bound] || QC::TOP_BOUND))
       log(args.merge(:at => "worker_initialized"))
       @running = true
+
+      start_detect_dead_workers
     end
 
     # Commences the working of jobs.
@@ -144,6 +146,29 @@ module QC
     def stop_heartbeat
       QC.log_yield(:at => "stop_heartbeat") do
         @heartbeat.kill
+      end
+    end
+
+    def start_detect_dead_workers
+      QC.log_yield(:at => "start_detect_dead_workers") do
+        Thread.new do
+          loop do
+            sleep(10)
+            query = "SELECT locked_by FROM #{TABLE_NAME} WHERE updated_at < (select current_timestamp - interval '5' minute) LIMIT 1"
+            res = @conn_adapter.execute(query)
+            if res && res['locked_by']
+              unlock_dead_worker_jobs(res['locked_by'])
+            end
+          end
+        end
+
+      end
+    end
+
+    def unlock_dead_worker_jobs(worker_id)
+      QC.log_yield(:at => "unlock_dead_worker_jobs") do
+        query = "UPDATE #{TABLE_NAME} set locked_at = null, locked_by = null, updated_at = null where locked_by = $1"
+        res = @conn_adapter.execute(query, worker_id.to_s)
       end
     end
 
