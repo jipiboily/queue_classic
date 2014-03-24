@@ -68,11 +68,3 @@ BEGIN
   RETURN QUERY EXECUTE 'SELECT * FROM lock_head($1,10)' USING tname;
 END;
 $$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION lock_head(tname varchar, top_boundary integer)
-RETURNS SETOF queue_classic_jobs AS $$
-BEGIN
-  RETURN QUERY EXECUTE 'SELECT * FROM lock_head($1, $2, null)' USING tname;
-END;
-$$ LANGUAGE plpgsql;
