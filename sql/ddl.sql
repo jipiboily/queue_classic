@@ -50,8 +50,9 @@ BEGIN
   END LOOP;
 
   RETURN QUERY EXECUTE 'UPDATE queue_classic_jobs '
-    || ' SET locked_at = (CURRENT_TIMESTAMP)'
-    || ' , locked_by = '
+    || ' SET locked_at = (CURRENT_TIMESTAMP),'
+    || ' updated_at = (CURRENT_TIMESTAMP),'
+    || ' locked_by = '
     || quote_literal(worker_id)
     || ' WHERE id = $1'
     || ' AND locked_at is NULL'
