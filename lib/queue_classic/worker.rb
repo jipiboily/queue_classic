@@ -134,7 +134,7 @@ module QC
             @queues.each do |queue|
               if !queue.heartbeat(job[:id])
                 QC.log(:at => 'heartbeat_failed', :jid => job[:id], :wid => @id)
-                # exit(1)
+                exit(1)
               end
             end
           end
