@@ -52,6 +52,7 @@ module QC
     end
   end
 
+  # This will tell us if we already have an active connection (true) or not (false)
   def self.has_connection?
     !@conn_adapter.nil?
   end
@@ -60,6 +61,7 @@ module QC
     @conn_adapter ||= ConnAdapter.new
   end
 
+  # This is to set the connection manually, in the case we want to share a connection
   def self.default_conn_adapter=(conn)
     @conn_adapter = conn
   end

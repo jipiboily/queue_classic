@@ -127,6 +127,8 @@ module QC
       end
     end
 
+    # This method is responsible of calling the heartbeat which will update the
+    # updated_at column at a given interval to make sure the worker is not dead
     def start_heartbeat(job)
       QC.log_yield(:at => "start_heartbeat", :jid => job[:id], :wid => @id) do
         @heartbeat = Thread.new do
@@ -143,12 +145,16 @@ module QC
       end
     end
 
+    # This method will basically kill the heartbeat thread when called
     def stop_heartbeat
       QC.log_yield(:at => "stop_heartbeat") do
         @heartbeat.kill
       end
     end
 
+    # This is going to detect if there any dead workers, based on the lack of
+    # update to the updated_at column for a certain amount of time. If a dead
+    # worker is detected, we call `unlock_dead_worker_jobs' for that worker.
     def start_detect_dead_workers
       QC.log_yield(:at => "start_detect_dead_workers") do
         Thread.new do
@@ -165,6 +171,8 @@ module QC
       end
     end
 
+    # In the case where we detect a dead worker, we want to unlock it's jobs
+    # so that another (or a new) worker can pick them up
     def unlock_dead_worker_jobs(worker_id)
       QC.log_yield(:at => "unlock_dead_worker_jobs") do
         query = "UPDATE #{TABLE_NAME} set locked_at = null, locked_by = null, updated_at = null where locked_by = $1"
