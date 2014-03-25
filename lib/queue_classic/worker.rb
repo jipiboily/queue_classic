@@ -6,7 +6,7 @@ module QC
   # A Worker object can process jobs from one or many queues.
   class Worker
 
-    attr_accessor :queues, :running
+    attr_accessor :queues, :running, :id
 
     # Creates a new worker but does not start the worker. See Worker#start.
     # This method takes a single hash argument. The following keys are read:
